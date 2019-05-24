@@ -4,7 +4,26 @@
 #pragma comment(lib, "ws2_32.lib")
 #pragma warning(disable:4996)
 
+#define ADD_OPTIONS_COUNT 8
+
 using namespace std;
+
+int chooseMainMenuOption();
+void addTrip(SOCKET sock);
+
+struct TripPoint {
+	int x;
+	int y;
+	char trip_name[20];
+};
+
+struct Trip {
+	int id;
+	struct TripPoint start_point;
+	struct TripPoint end_point;
+	int avarage_speed;
+	int time;
+};
 
 void main()
 {
@@ -43,35 +62,75 @@ void main()
 		WSACleanup();
 		return;
 	}
-	// Do-while loop to send and receive data
-	char buf[4096];
-	string userInput;
 
+	// Do-while loop to send and receive data
+	int option;
 	do
 	{
-		//prompt the user for some text
-		cout << "> ";
-		getline(cin, userInput);
+		option = chooseMainMenuOption();
 
-		if (userInput.size() > 0)
+		switch (option)
 		{
-			//Send the text
-			int sendResult = send(sock, userInput.c_str(), userInput.size() + 1, 0);
-			if (sendResult != SOCKET_ERROR)
-			{
-				//wait for response
-				ZeroMemory(buf, 4096);
-				int bytesReceived = recv(sock, buf, 4096, 0);
-				if (bytesReceived > 0)
-				{
-					// Echo response to console
-					cout << "SERVER> " << string(buf, 0, bytesReceived) << endl;
-				}
-			}
+		case 1: {
+			addTrip(sock);
 		}
-		
+		case 2: {
+			break;
+		}
+		case 3: {
+
+		}
+		default:
+			break;
+		}
+		//prompt the user for some text
+
 		//echo response to console
-	} while (userInput.size() > 0);
+	} while (option < 4);
 	// Gracefully close down everything
 
 }
+
+int chooseMainMenuOption() {
+	system("CLS");
+	printf("****************************\n");
+	printf("* 1.Add trip               *\n");
+	printf("* 2.Show all trips         *\n");
+	printf("* 3.Show trip by id        *\n");
+	printf("* 4.Exit		   *\n");
+	printf("****************************\n");
+
+	int option;
+
+	printf("Choose option:");
+	cin >> option;
+	return option;
+}
+
+void addTrip(SOCKET sock) {
+	string options[] = { "Start point name:","x:","y:","End point name:","x:","y:","avarage speed:","time:" };
+	system("CLS");
+	printf("********Add Trip Menu*******\n");
+	char buf[4096];
+	char userInput[100];
+	int options_count = 8;
+
+	//send to know for our option
+	send(sock, "1", sizeof("1") + 1, 0);
+	for (int i = 0; i < ADD_OPTIONS_COUNT; i++)
+	{
+		cout << options[i];
+		cin >> userInput;
+		int sendResult = send(sock, userInput, sizeof(userInput) + 1, 0);
+	}
+
+	ZeroMemory(buf, 4096);
+	int bytesReceived = recv(sock, buf, 4096, 0);
+	if (bytesReceived > 0)
+	{
+		// Echo response to console
+		cout << "SERVER> " << string(buf, 0, bytesReceived) << endl;
+		system("pause");
+	}
+}
+

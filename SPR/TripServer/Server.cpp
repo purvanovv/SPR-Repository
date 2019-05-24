@@ -1,10 +1,33 @@
 #include <iostream>
 #include <WS2tcpip.h>
+#include <string>
 
 #pragma comment (lib, "ws2_32.lib")
 #pragma warning(disable:4996)
 
+#define ADD_OPTIONS_COUNT 8
+
 using namespace std;
+
+struct TripPoint {
+	int x;
+	int y;
+	char trip_name[20];
+};
+
+struct Trip {
+	int id;
+	struct TripPoint start_point;
+	struct TripPoint end_point;
+	int avarage_speed;
+	int time;
+};
+
+//////////////declare functions//////////////////////
+void processAddTrip(SOCKET clientSocket);
+void writeTrip(struct Trip trip);
+int getLastId();
+
 
 void main() 
 {
@@ -77,8 +100,23 @@ void main()
 			break;
 		}
 
+		cout << buf << endl; 
+		switch (buf[0])
+		{
+		case '1': {
+			processAddTrip(clientSocket);
+		}
+		case '2': {
+			break;
+		}
+		case '3': {
+
+		}
+		default:
+			break;
+		}
 		//Echo message back to client
-		send(clientSocket, buf, bytesReceived + 1, 0);
+		//send(clientSocket, buf, bytesReceived + 1, 0);
 	}
 
 	// close the sock
@@ -86,4 +124,86 @@ void main()
 
 	// Cleanup winsock
 	WSACleanup();
+}
+
+void processAddTrip(SOCKET clientSocket) {
+	char data[ADD_OPTIONS_COUNT][100];
+
+	for (size_t i = 0; i < ADD_OPTIONS_COUNT; i++)
+	{
+		int bytesReceived = recv(clientSocket, data[i], 4096, 0);
+		if (bytesReceived == SOCKET_ERROR)
+		{
+			cerr << "Error in recv(). Quiting" << endl;
+			return;
+		}
+
+		if (bytesReceived == 0)
+		{
+			cout << "Client disconnected " << endl;
+			return;
+		}
+	}
+
+	struct TripPoint startPoint;
+	strcpy(startPoint.trip_name, data[0]);
+	startPoint.x = stoi(data[1]);
+	startPoint.y = stoi(data[2]);
+
+	struct TripPoint endPoint;
+	strcpy(endPoint.trip_name, data[3]);
+	endPoint.x = stoi(data[4]);
+	endPoint.y = stoi(data[5]);
+
+	struct Trip trip;
+	trip.start_point = startPoint;
+	trip.end_point = endPoint;
+	trip.avarage_speed = stoi(data[6]);
+	trip.time = stoi(data[7]);
+
+	writeTrip(trip);
+
+	char message[] = { "SUCCESSFULL" };
+	send(clientSocket, message, sizeof(message) + 1, 0);
+}
+
+int getLastId() {
+	FILE * file;
+	struct Trip trip;
+	int lastId = 0;
+
+	file = fopen("trips.txt", "rb");
+	if (file == NULL) {
+		return lastId;
+	}
+
+	while (fread(&trip, sizeof(struct Trip), 1, file)) {
+		if (trip.id > lastId) {
+			lastId = trip.id;
+		}
+	}
+	fclose(file);
+	return lastId;
+}
+
+void writeTrip(struct Trip trip) {
+	FILE * file;
+
+	int tripId = getLastId() + 1;
+	trip.id = tripId;
+
+	file = fopen("trips.txt", "ab");
+	if (file == NULL) {
+		fprintf(stderr, "\nError opend file!\n");
+		exit(1);
+	}
+
+	fwrite(&trip, sizeof(struct Trip), 1, file);
+
+	if (fwrite != 0)
+		printf("contents to file written successfully !\n");
+	else
+		printf("error writing file !\n");
+
+	fclose(file);
 }
