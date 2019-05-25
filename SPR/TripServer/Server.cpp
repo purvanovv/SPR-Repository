@@ -216,10 +216,12 @@ void writeTrip(struct Trip trip) {
 }
 
 void processShowAllTrips(SOCKET clientSocket) {
+	char end[] = "END";
 	Trip trips[20];
 	readAllTrips(trips);
 	int count_elements = sizeof(trips) / sizeof(Trip);
 	sendTripsToClient(trips, count_elements, clientSocket);
+	send(clientSocket, end, sizeof(end), 0);
 }
 
 void readAllTrips(Trip *trips) {
@@ -241,58 +243,22 @@ void readAllTrips(Trip *trips) {
 	fclose(file);
 }
 void sendTripsToClient(Trip *trips, int count_elements, SOCKET clientSocket) {
-	char arr[TRIP_FIELDS_COUNT][100];
-	char end[] = "END";
+
 	char newLine[] = "N";
-	char buf[4096];
 	for (int i = 0; i < count_elements; i++)
 	{
-		ZeroMemory(arr, sizeof(arr));
 		if (trips[i].id > 0) {
-			Trip trip = trips[i];
-			sprintf(arr[0], "id:%ld", trip.id);
-
-			strcat(arr[1], "Start city:");
-			strcat(arr[1], trip.start_point.trip_name);
-			sprintf(arr[2], " start.x:%ld", trip.start_point.x);
-			sprintf(arr[3], " start.y%ld", trip.start_point.y);
-
-			strcat(arr[4], "End city:");
-			strcat(arr[4], trip.end_point.trip_name);
-			sprintf(arr[5], " end.x:%ld", trip.end_point.x);
-			sprintf(arr[6], " end:y:%ld", trip.end_point.y);
-
-			sprintf(arr[7], "Avarage speed:%ld", trip.avarage_speed);
-
-			sprintf(arr[8], "Trip time:%ld", trip.time);
-
-			for (int i = 0; i < TRIP_FIELDS_COUNT; i++)
-			{
-				ZeroMemory(buf, 4096);
-				send(clientSocket, arr[i], sizeof(arr[i]), 0);
-				int bytesReceived = recv(clientSocket, buf, 4096, 0);
-				if (bytesReceived == SOCKET_ERROR)
-				{
-					cerr << "Error in recv(). Quiting" << endl;
-					return;
-				}
-
-				if (bytesReceived == 0)
-				{
-					cout << "Server disconnected " << endl;
-					return;
-				}
-			}
+			sendTripToClient(trips[i], clientSocket);
 			send(clientSocket, newLine, sizeof(newLine), 0);
 		}
 		
 	}
-	send(clientSocket, end, sizeof(end), 0);
 }
 
 
 void processShowTrip(SOCKET clientSocket) {
 	char buf[5];
+	char end[] = "END";
 	struct Trip foundedTrip;
 	int bytesReceived = recv(clientSocket, buf, 5, 0);
 
@@ -303,6 +269,7 @@ void processShowTrip(SOCKET clientSocket) {
 	else {
 		//printf("Can't find trip with id: %d\n", 5);
 	}
+	send(clientSocket, end, sizeof(end), 0);
 }
 
 bool getTripById(int tripId, struct Trip *tripIn) {
@@ -333,7 +300,6 @@ bool getTripById(int tripId, struct Trip *tripIn) {
 
 void sendTripToClient(struct Trip trip, SOCKET clientSocket) {
 	char arr[TRIP_FIELDS_COUNT][100];
-	char end[] = "END";
 	char buf[4096];
 
 	ZeroMemory(arr,sizeof(arr));
@@ -370,6 +336,4 @@ void sendTripToClient(struct Trip trip, SOCKET clientSocket) {
 			return;
 		}
 	}
-
-	send(clientSocket, end, sizeof(end), 0);
 }
