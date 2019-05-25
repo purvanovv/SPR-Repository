@@ -30,7 +30,10 @@ void processShowAllTrips(SOCKET clientSocket);
 void writeTrip(struct Trip trip);
 void readAllTrips(Trip *trips);
 void sendTripsToClient(Trip *trips, int count_elements, SOCKET clientSocket);
+void processShowTrip(SOCKET clientSocket);
 int getLastId();
+void sendTripToClient(struct Trip trip, SOCKET clientSocket);
+bool getTripById(int tripId, struct Trip *tripIn);
 
 
 void main()
@@ -114,7 +117,7 @@ void main()
 			processShowAllTrips(clientSocket);
 		}
 		case '3': {
-
+			processShowTrip(clientSocket);
 		}
 		default:
 			break;
@@ -284,5 +287,89 @@ void sendTripsToClient(Trip *trips, int count_elements, SOCKET clientSocket) {
 		}
 		
 	}
+	send(clientSocket, end, sizeof(end), 0);
+}
+
+
+void processShowTrip(SOCKET clientSocket) {
+	char buf[5];
+	struct Trip foundedTrip;
+	int bytesReceived = recv(clientSocket, buf, 5, 0);
+
+	int tripId = atoi(buf);
+	if (getTripById(tripId, &foundedTrip)) {
+		sendTripToClient(foundedTrip,clientSocket);
+	}
+	else {
+		//printf("Can't find trip with id: %d\n", 5);
+	}
+}
+
+bool getTripById(int tripId, struct Trip *tripIn) {
+	FILE * file;
+	struct Trip trip;
+
+	file = fopen("trips.txt", "rb");
+	if (file == NULL) {
+		return false;
+	}
+
+	while (fread(&trip, sizeof(struct Trip), 1, file)) {
+		if (trip.id == tripId) {
+			tripIn->id = trip.id;
+			tripIn->start_point = trip.start_point;
+			tripIn->end_point = trip.end_point;
+			tripIn->avarage_speed = trip.avarage_speed;
+			tripIn->time = trip.time;
+			return true;
+		}
+	}
+
+	fclose(file);
+
+	return false;
+
+}
+
+void sendTripToClient(struct Trip trip, SOCKET clientSocket) {
+	char arr[TRIP_FIELDS_COUNT][100];
+	char end[] = "END";
+	char buf[4096];
+
+	ZeroMemory(arr,sizeof(arr));
+	sprintf(arr[0], "id:%ld", trip.id);
+
+	strcat(arr[1], "Start city:");
+	strcat(arr[1], trip.start_point.trip_name);
+	sprintf(arr[2], " start.x:%ld", trip.start_point.x);
+	sprintf(arr[3], " start.y%ld", trip.start_point.y);
+
+	strcat(arr[4], "End city:");
+	strcat(arr[4], trip.end_point.trip_name);
+	sprintf(arr[5], " end.x:%ld", trip.end_point.x);
+	sprintf(arr[6], " end:y:%ld", trip.end_point.y);
+
+	sprintf(arr[7], "Avarage speed:%ld", trip.avarage_speed);
+
+	sprintf(arr[8], "Trip time:%ld", trip.time);
+
+	for (int i = 0; i < TRIP_FIELDS_COUNT; i++)
+	{
+		ZeroMemory(buf, 4096);
+		send(clientSocket, arr[i], sizeof(arr[i]), 0);
+		int bytesReceived = recv(clientSocket, buf, 4096, 0);
+		if (bytesReceived == SOCKET_ERROR)
+		{
+			cerr << "Error in recv(). Quiting" << endl;
+			return;
+		}
+
+		if (bytesReceived == 0)
+		{
+			cout << "Server disconnected " << endl;
+			return;
+		}
+	}
+
 	send(clientSocket, end, sizeof(end), 0);
 }

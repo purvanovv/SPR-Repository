@@ -11,6 +11,7 @@ using namespace std;
 int chooseMainMenuOption();
 void addTrip(SOCKET sock);
 void showAllTrips(SOCKET sock);
+void showTrip(SOCKET sock);
 
 struct TripPoint {
 	int x;
@@ -81,7 +82,8 @@ void main()
 			break;
 		}
 		case 3: {
-
+			showTrip(sock);
+			break;
 		}
 		default:
 			break;
@@ -169,6 +171,47 @@ void showAllTrips(SOCKET sock) {
 			send(sock, "1", sizeof("1"), 0);
 		}
 		
+	}
+	system("pause");
+}
+
+void showTrip(SOCKET sock) {
+	char tripIdText[3];
+	char buf[4096];
+	system("CLS");
+	printf("*********Show trip**********\n");
+	printf("Enter trip id:");
+	int tripId;
+	cin >> tripId;
+
+	send(sock, "3", sizeof("3") + 1, 0);
+
+	sprintf(tripIdText, "%ld", tripId);
+	send(sock, tripIdText, sizeof(tripIdText) + 1, 0);
+	while (true) {
+		ZeroMemory(buf, 4096);
+		int bytesReceived = recv(sock, buf, 4096, 0);
+		if (bytesReceived == SOCKET_ERROR)
+		{
+			cerr << "Error in recv(). Quiting" << endl;
+			return;
+		}
+
+		if (bytesReceived == 0)
+		{
+			cout << "Server disconnected " << endl;
+			return;
+		}
+
+		if (strncmp(buf, "END", strlen("END")) == 0) {
+			break;
+		}
+
+		else {
+			cout << buf << endl;
+			send(sock, "1", sizeof("1"), 0);
+		}
+
 	}
 	system("pause");
 }
