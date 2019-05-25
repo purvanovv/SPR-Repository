@@ -34,6 +34,13 @@ void processShowTrip(SOCKET clientSocket);
 int getLastId();
 void sendTripToClient(struct Trip trip, SOCKET clientSocket);
 bool getTripById(int tripId, struct Trip *tripIn);
+void processShowTopShortestTrips(SOCKET clientSocket);
+void sortTripsShortest(Trip *trips, int count_elements);
+void sortTripsBiggest(Trip *trips, int count_elements);
+bool firstTripBigger(Trip firstTrip, Trip secondTrip);
+void swapTrips(Trip *firstTrip, Trip *secondTrip);
+int countTrips(Trip *trips);
+void processShowTopLongestTrips(SOCKET clientSocket);
 
 
 void main()
@@ -112,12 +119,23 @@ void main()
 		{
 		case '1': {
 			processAddTrip(clientSocket);
+			break;
 		}
 		case '2': {
 			processShowAllTrips(clientSocket);
+			break;
 		}
 		case '3': {
 			processShowTrip(clientSocket);
+			break;
+		}
+		case '4': {
+			processShowTopShortestTrips(clientSocket);
+			break;
+		}
+		case '5': {
+			processShowTopLongestTrips(clientSocket);
+			break;
 		}
 		default:
 			break;
@@ -334,6 +352,86 @@ void sendTripToClient(struct Trip trip, SOCKET clientSocket) {
 		{
 			cout << "Server disconnected " << endl;
 			return;
+		}
+	}
+}
+void processShowTopShortestTrips(SOCKET clientSocket) {
+	char buf[4096];
+	char end[] = "END";
+	recv(clientSocket, buf, 4096, 0);
+	int top = atoi(buf);
+
+	Trip trips[20];
+	readAllTrips(trips);
+	int count_elements = countTrips(trips);
+	sortTripsShortest(trips,count_elements);
+
+	top = min(top, count_elements);
+	sendTripsToClient(trips, top, clientSocket);
+
+	send(clientSocket, end, sizeof(end), 0);
+}
+
+void sortTripsShortest(Trip *trips,int count_elements) {
+	for (int i = 0; i < count_elements-1; i++)
+	{
+		for (int j = 0; j < count_elements-i-1; j++)
+		{
+			if (firstTripBigger(trips[j], trips[j + 1])) {
+				swapTrips(&trips[j], &trips[j + 1]);
+			}
+		}
+	}
+}
+
+bool firstTripBigger(Trip firstTrip, Trip secondTrip) {
+	int firstTripDistance = sqrt(pow((firstTrip.end_point.x - firstTrip.start_point.x), 2) + pow((firstTrip.end_point.y - firstTrip.start_point.y), 2));
+	int secondTripDistance = sqrt(pow((secondTrip.end_point.x - secondTrip.start_point.x), 2) + pow((secondTrip.end_point.y - secondTrip.start_point.y), 2));
+	if (firstTripDistance > secondTripDistance) {
+		return true;
+	}
+	return false;
+}
+
+void swapTrips(Trip *firstTrip, Trip *secondTrip) {
+	Trip temp = *firstTrip;
+	*firstTrip = *secondTrip;
+	*secondTrip = temp;
+}
+
+int countTrips(Trip* trips) {
+	int count = 0;
+	while (trips[count].id > 0) {
+		count++;
+	}
+	return count;
+}
+
+void processShowTopLongestTrips(SOCKET clientSocket) {
+	char buf[4096];
+	char end[] = "END";
+	recv(clientSocket, buf, 4096, 0);
+	int top = atoi(buf);
+
+	Trip trips[20];
+	readAllTrips(trips);
+	int count_elements = countTrips(trips);
+	sortTripsBiggest(trips, count_elements);
+
+	top = min(top, count_elements);
+	sendTripsToClient(trips, top, clientSocket);
+
+	send(clientSocket, end, sizeof(end), 0);
+}
+
+void sortTripsBiggest(Trip *trips, int count_elements) {
+	for (int i = 0; i < count_elements - 1; i++)
+	{
+		for (int j = 0; j < count_elements - i - 1; j++)
+		{
+			if (!firstTripBigger(trips[j], trips[j + 1])) {
+				swapTrips(&trips[j], &trips[j + 1]);
+			}
 		}
 	}
 }

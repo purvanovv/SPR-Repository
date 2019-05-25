@@ -1,3 +1,5 @@
 ﻿  Server.cpp
-c:\users\viktor\source\repos\spr-repository\spr\tripserver\server.cpp(40): warning C4326: return type of 'main' should be 'int' instead of 'void'
+c:\users\viktor\source\repos\spr-repository\spr\tripserver\server.cpp(47): warning C4326: return type of 'main' should be 'int' instead of 'void'
+c:\users\viktor\source\repos\spr-repository\spr\tripserver\server.cpp(388): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\viktor\source\repos\spr-repository\spr\tripserver\server.cpp(389): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
   TripServer.vcxproj -> C:\Users\Viktor\source\repos\SPR-Repository\SPR\Debug\TripServer.exe

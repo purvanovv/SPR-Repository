@@ -1,4 +1,4 @@
 ﻿  Client.cpp
-c:\users\viktor\source\repos\spr-repository\spr\tripclient\client.cpp(31): warning C4326: return type of 'main' should be 'int' instead of 'void'
+c:\users\viktor\source\repos\spr-repository\spr\tripclient\client.cpp(33): warning C4326: return type of 'main' should be 'int' instead of 'void'
   LINK : C:\Users\Viktor\source\repos\SPR-Repository\SPR\Debug\TripClient.exe not found or not built by the last incremental link; performing full link
   TripClient.vcxproj -> C:\Users\Viktor\source\repos\SPR-Repository\SPR\Debug\TripClient.exe

@@ -12,6 +12,8 @@ int chooseMainMenuOption();
 void addTrip(SOCKET sock);
 void showAllTrips(SOCKET sock);
 void showTrip(SOCKET sock);
+void showShortestTrips(SOCKET sock);
+void showLongestTrips(SOCKET sock);
 
 struct TripPoint {
 	int x;
@@ -85,25 +87,38 @@ void main()
 			showTrip(sock);
 			break;
 		}
+		case 4: {	
+			showShortestTrips(sock);
+			break;
+		}
+		case 5: {
+			showLongestTrips(sock);
+			break;
+		}
+		case 6: {
+			break;
+		}
 		default:
 			break;
 		}
 		//prompt the user for some text
 
 		//echo response to console
-	} while (option < 4);
+	} while (option < 6);
 	// Gracefully close down everything
 
 }
 
 int chooseMainMenuOption() {
 	system("CLS");
-	printf("****************************\n");
-	printf("* 1.Add trip               *\n");
-	printf("* 2.Show all trips         *\n");
-	printf("* 3.Show trip by id        *\n");
-	printf("* 4.Exit		   *\n");
-	printf("****************************\n");
+	printf("*****************************\n");
+	printf("* 1.Add trip                *\n");
+	printf("* 2.Show all trips          *\n");
+	printf("* 3.Show trip by id         *\n");
+	printf("* 4.Show top shortest trips *\n");
+	printf("* 5.Show top longest trips  *\n");
+	printf("* 6.Exit		    *\n");
+	printf("*****************************\n");
 
 	int option;
 
@@ -215,4 +230,94 @@ void showTrip(SOCKET sock) {
 	}
 	system("pause");
 }
+
+void showShortestTrips(SOCKET sock) {
+	char buf[4096];
+	char top[3];
+	system("CLS");
+	printf("****Show shortest trips*****\n");
+
+	printf("Enter top:");
+	int tripId;
+	cin >> tripId;
+
+	send(sock, "4", sizeof("4") + 1, 0);
+
+	sprintf(top, "%ld", tripId);
+	send(sock, top, sizeof(top) + 1, 0);
+	while (true) {
+		ZeroMemory(buf, 4096);
+		int bytesReceived = recv(sock, buf, 4096, 0);
+		if (bytesReceived == SOCKET_ERROR)
+		{
+			cerr << "Error in recv(). Quiting" << endl;
+			return;
+		}
+
+		if (bytesReceived == 0)
+		{
+			cout << "Server disconnected " << endl;
+			return;
+		}
+
+		if (strncmp(buf, "END", strlen("END")) == 0) {
+			break;
+		}
+		if (strncmp(buf, "N", strlen("N")) == 0) {
+			printf("****************************\n");
+		}
+		else {
+			cout << buf << endl;
+			send(sock, "1", sizeof("1"), 0);
+		}
+
+	}
+	system("pause");
+}
+
+void showLongestTrips(SOCKET sock) {
+	char buf[4096];
+	char top[3];
+	system("CLS");
+	printf("****Show longest trips******\n");
+
+	printf("Enter top:");
+	int tripId;
+	cin >> tripId;
+
+	send(sock, "5", sizeof("5") + 1, 0);
+
+	sprintf(top, "%ld", tripId);
+	send(sock, top, sizeof(top) + 1, 0);
+	while (true) {
+		ZeroMemory(buf, 4096);
+		int bytesReceived = recv(sock, buf, 4096, 0);
+		if (bytesReceived == SOCKET_ERROR)
+		{
+			cerr << "Error in recv(). Quiting" << endl;
+			return;
+		}
+
+		if (bytesReceived == 0)
+		{
+			cout << "Server disconnected " << endl;
+			return;
+		}
+
+		if (strncmp(buf, "END", strlen("END")) == 0) {
+			break;
+		}
+		if (strncmp(buf, "N", strlen("N")) == 0) {
+			printf("****************************\n");
+		}
+		else {
+			cout << buf << endl;
+			send(sock, "1", sizeof("1"), 0);
+		}
+
+	}
+	system("pause");
+}
+
+
 
