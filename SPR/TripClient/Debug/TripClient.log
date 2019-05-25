@@ -1,4 +1,3 @@
 ﻿  Client.cpp
-c:\users\viktor\source\repos\spr-repository\spr\tripclient\client.cpp(10): warning C4326: return type of 'main' should be 'int' instead of 'void'
-c:\users\viktor\source\repos\spr-repository\spr\tripclient\client.cpp(33): warning C4552: '-': result of expression not used
+c:\users\viktor\source\repos\spr-repository\spr\tripclient\client.cpp(30): warning C4326: return type of 'main' should be 'int' instead of 'void'
   TripClient.vcxproj -> C:\Users\Viktor\source\repos\SPR-Repository\SPR\Debug\TripClient.exe

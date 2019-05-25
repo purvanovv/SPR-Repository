@@ -10,6 +10,7 @@ using namespace std;
 
 int chooseMainMenuOption();
 void addTrip(SOCKET sock);
+void showAllTrips(SOCKET sock);
 
 struct TripPoint {
 	int x;
@@ -73,8 +74,10 @@ void main()
 		{
 		case 1: {
 			addTrip(sock);
+			break;
 		}
 		case 2: {
+			showAllTrips(sock);
 			break;
 		}
 		case 3: {
@@ -132,5 +135,41 @@ void addTrip(SOCKET sock) {
 		cout << "SERVER> " << string(buf, 0, bytesReceived) << endl;
 		system("pause");
 	}
+}
+
+void showAllTrips(SOCKET sock) {
+	char buf[4096];
+	system("CLS");
+	printf("****Show all trips menu*****\n");
+
+	send(sock, "2", sizeof("2") + 1, 0);
+	while (true) {
+		ZeroMemory(buf, 4096);
+		int bytesReceived = recv(sock, buf, 4096, 0);
+		if (bytesReceived == SOCKET_ERROR)
+		{
+			cerr << "Error in recv(). Quiting" << endl;
+			return;
+		}
+
+		if (bytesReceived == 0)
+		{
+			cout << "Server disconnected " << endl;
+			return;
+		}
+
+		if (strncmp(buf, "END", strlen("END")) == 0) {
+			break;
+		}
+		if (strncmp(buf, "N", strlen("N")) == 0) {
+			printf("****************************\n");
+		}
+		else {
+			cout << buf << endl;
+			send(sock, "1", sizeof("1"), 0);
+		}
+		
+	}
+	system("pause");
 }
 
